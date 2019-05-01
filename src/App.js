@@ -1,26 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
 
-function App() {
+
+
+const Banner = ({ title }) => (
+  <h1 className="title">{ title }</h1>
+);
+
+const ProductList = ({ products }) => (
+  <ul className="menu-list">
+    {Object.keys(products).map(key => <Product key={products[key]} product={ products[key] } />)}
+  </ul>
+);
+
+const Product = ({ product }) => (
+  <li className="menu-item">
+      { product.title }
+  </li>
+);
+
+const App = () => {
+  const [store, setProducts] = useState({  products: {} });
+  const url = '/data/products.json';
+
+  React.useEffect(() => {
+
+    const fetchProducts = async () => {
+      const response = await fetch(url);
+      if (!response.ok) throw response;
+      const json = await response.json();
+      setProducts(json);
+    }
+
+    fetchProducts();
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <section>
+      <div className="container menu">
+        <ProductList products={ store.products } />
+      </div>
+    </section>
   );
-}
+};
 
 export default App;
