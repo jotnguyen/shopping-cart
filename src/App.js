@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, Drawer, Fab, CardActions, Button } from '@material-ui/core/';
+import { ShoppingCart as ShoppingCartIcon, AccountCircle } from '@material-ui/icons';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import CardMedia from '@material-ui/core/CardMedia';
@@ -17,22 +18,26 @@ const styles = theme => ({
     textAlign: 'center',
     color: theme.palette.text.secondary,
   },
+  carticon: {
+    position: 'fixed',
+    right: 35,
+    bottom: 35
+  },
 });
 
 
-function SizeButtons(){
-  const [picked, setButton] = useState('')
+const SizeButtons = ({ picked, handleSize}) => {
 
-  const handleChange = event => {
-    setButton(event.target.value);
-  };
+
+
+
 
   return (
       <div>
         S
         <Radio
           checked={picked === 'S'}
-          onChange={handleChange}
+          onChange={handleSize}
           value="S"
           name="radio-button-demo"
           aria-label="A"
@@ -40,7 +45,7 @@ function SizeButtons(){
         M
         <Radio
           checked={picked === 'M'}
-          onChange={handleChange}
+          onChange={handleSize}
           value="M"
           name="radio-button-demo"
           aria-label="B"
@@ -48,7 +53,7 @@ function SizeButtons(){
         L
         <Radio
           checked={picked === 'L'}
-          onChange={handleChange}
+          onChange={handleSize}
           value="L"
           name="radio-button-demo"
           aria-label="C"
@@ -56,7 +61,7 @@ function SizeButtons(){
         XL
         <Radio
           checked={picked === 'XL'}
-          onChange={handleChange}
+          onChange={handleSize}
           value="XL"
           name="radio-button-demo"
           aria-label="D"
@@ -65,41 +70,57 @@ function SizeButtons(){
     );
 
 }
-const ProductList = ({ products }) => (
+const ProductList = ({ products, add: addToCart }) => (
   <Grid container spacing={24}>
-        {Object.keys(products).map(key => <Product key={products[key]} product={ products[key] } />)}
+        {Object.keys(products).map(key => <Product key={products[key]} product={ products[key] } add={addToCart}/>)}
   </Grid>
 );
 
-const Product = ({ product }) => (
-        <Grid item xs={3}>
-          <Paper>
+const Product = ({ product, add: addToCart }) => {
+  const [picked, setButton] = useState('')
+  const handleSize = event => {
+    setButton(event.target.value);
+  };
 
-          <CardMedia
-            style = {{ height: 200, paddingTop: '56%'}}
-            image={"/data/products/"+product.sku+"_1.jpg"}
-            title={product.sku}
-          />
-          <CardContent>
-            <Typography gutterBottom variant="h5" component="h2">
-             {product.title}
-            </Typography>
-            <Typography component="p">
-              {product.description}
-            </Typography>
-            <Typography component="p">
-              {"$"+product.price}
-            </Typography>
-            <SizeButtons/>
-          </CardContent>
-            </Paper>
-        </Grid>
-);
+  const addProductToCart = (sku, size) => {
+    addToCart(sku, size);
+  }
+
+  return (
+    <Grid item xs={3}>
+      <Paper>
+
+        <CardMedia
+          style={{height: 200, paddingTop: '56%'}}
+          image={"/data/products/" + product.sku + "_1.jpg"}
+          title={product.sku}
+        />
+        <CardContent>
+          <Typography gutterBottom variant="h5" component="h2">
+            {product.title}
+          </Typography>
+          <Typography component="p">
+            {product.description}
+          </Typography>
+          <Typography component="p">
+            {"$" + product.price}
+          </Typography>
+          <SizeButtons handleSize={handleSize} picked={picked}/>
+        </CardContent>
+        <CardActions>
+          <Button size="small" color="primary" onClick={() => addProductToCart(product.sku, picked)}>Add to cart</Button>
+        </CardActions>
+      </Paper>
+    </Grid>
+  );
+}
 
 const App = (props) => {
   const { classes } = props
 
+  const [cart, setCart] = useState([]);
   const [store, setProducts] = useState({  products: {} });
+  const [openCart, setOpenCart] = useState(false)
   const url = '/data/products.json';
 
   React.useEffect(() => {
@@ -114,10 +135,36 @@ const App = (props) => {
     fetchProducts();
   }, []);
 
+
+  const toggleCart = () => {
+    setOpenCart(!openCart);
+  }
+
+  const addToCart = (sku, size) => {
+    console.log('cart:',cart,' ',sku,' ',size)
+    setCart([...cart, [sku, size]]);
+    console.log('cart again',cart)
+  };
+
   return (
     <section>
       <div className={classes.root}>
-        <ProductList products={ store.products } />
+        <ProductList products={ store.products } add={addToCart}/>
+        <Drawer className={classes.cart} open={openCart} onClose={toggleCart} anchor="right">
+          <div className={classes.cart}>
+            {cart.map(itemArray => {
+              console.log(itemArray)
+              console.log(store)
+              return (<div>{store['products'][itemArray[0]]['title']+" "+store['products'][itemArray[0]]['price']}</div>)
+            })}
+          </div>
+          <div>
+            {"Total:  "+ cart.reduce( (total, curValue) => { return total + store['products'][curValue[0]]['price'] }, 0)}
+          </div>
+        </Drawer>
+        <Fab className={classes.carticon} color="primary" onClick={toggleCart}>
+          <ShoppingCartIcon />
+        </Fab>
       </div>
     </section>
   );
