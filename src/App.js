@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import { withStyles, Drawer, Fab, CardActions, Button } from '@material-ui/core/';
-import { ShoppingCart as ShoppingCartIcon, AccountCircle } from '@material-ui/icons';
+import { ShoppingCart as ShoppingCartIcon, HighlightOff, DeleteIcon } from '@material-ui/icons';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import CardMedia from '@material-ui/core/CardMedia';
@@ -70,13 +70,13 @@ const SizeButtons = ({ picked, handleSize}) => {
     );
 
 }
-const ProductList = ({ products, add: addToCart }) => (
+const ProductList = ({ products, add: addToCart, open: opensCart }) => (
   <Grid container spacing={24}>
-        {Object.keys(products).map(key => <Product key={products[key]} product={ products[key] } add={addToCart}/>)}
+        {Object.keys(products).map(key => <Product key={products[key]} product={ products[key] } add={addToCart} open={opensCart}/>)}
   </Grid>
 );
 
-const Product = ({ product, add: addToCart }) => {
+const Product = ({ product, add: addToCart, open: opensCart}) => {
   const [picked, setButton] = useState('')
   const handleSize = event => {
     setButton(event.target.value);
@@ -84,6 +84,7 @@ const Product = ({ product, add: addToCart }) => {
 
   const addProductToCart = (sku, size) => {
     addToCart(sku, size);
+    opensCart();
   }
 
   return (
@@ -140,6 +141,14 @@ const App = (props) => {
     setOpenCart(!openCart);
   }
 
+  const closeCart = () => {
+    setOpenCart(false)
+  }
+
+  const opensCart = () => {
+    setOpenCart(true)
+  }
+
   const addToCart = (sku, size) => {
     console.log('cart:',cart,' ',sku,' ',size)
     setCart([...cart, [sku, size]]);
@@ -149,8 +158,9 @@ const App = (props) => {
   return (
     <section>
       <div className={classes.root}>
-        <ProductList products={ store.products } add={addToCart}/>
+        <ProductList products={ store.products } add={addToCart} open={opensCart}/>
         <Drawer className={classes.cart} open={openCart} onClose={toggleCart} anchor="right">
+          <HighlightOff onClick={ closeCart }/>
           <div className={classes.cart}>
             {cart.map(itemArray => {
               console.log(itemArray)
