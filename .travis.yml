@@ -4,5 +4,6 @@ node_js:
 deploy:
   provider: firebase
   app: shopping-cart
-  on:
+  token:
+    secure: "1/jr7aSjSJvqzTyeYzKZqYAxTWEeXMk0CBBma4MuPTzlU"
 repo:  jotnguyen/shopping-cart
